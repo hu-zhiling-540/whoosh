@@ -28,15 +28,16 @@ void reportError() {
 }
 
 int whoosh_cd(char *path){
-  if(path == NULL)
+  if(path == NULL)  // when user enters cd without arguments
     return chdir(getenv("HOME"));  // change the working directory to the path stored in HOME variable
-  else
+  else  // with arguments
     return chdir(path);
+    // don't know if we should check if it is a vlid path
 }
 
 void whoosh_pwd(){
-  char *cwd = malloc(sizeof(char *) * (MAXPATH + 1));
-  cwd = getcwd(cwd, MAXPATH + 1);
+  char *cwd = malloc(sizeof(char *) * (MAXPATH + 1)); // still not sure if we should put extra 1 to indicate null terminator
+  cwd = getcwd(cwd, (MAXPATH + 1);
   if (cwd == NULL)
     reportError();
   else
