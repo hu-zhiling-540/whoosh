@@ -37,7 +37,7 @@ int whoosh_cd(char *path){
 
 void whoosh_pwd(){
   char *cwd = malloc(sizeof(char *) * (MAXPATH + 1)); // still not sure if we should put extra 1 to indicate null terminator
-  cwd = getcwd(cwd, (MAXPATH + 1);
+  cwd = getcwd(cwd, (MAXPATH + 1));
   if (cwd == NULL)
     reportError();
   else
