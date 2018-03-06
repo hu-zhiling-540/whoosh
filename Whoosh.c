@@ -34,6 +34,16 @@ int whoosh_cd(char *path){
     return chdir(path);
 }
 
+void whoosh_pwd(){
+  char *cwd = malloc(sizeof(char *) * (MAXPATH + 1));
+  cwd = getcwd(cwd, MAXPATH + 1);
+  if (cwd == NULL)
+    reportError();
+  else
+    printf("%s\n", cwd);
+  free(cwd);
+}
+
 // takes nothing, so we can simply call ./woosh
 int main(void){
 
@@ -73,6 +83,9 @@ int main(void){
 
     if (strcmp(line_argv[0], "cd") == 0)
       whoosh_cd(line_argv[1]);
+
+    if (strcmp(line_argv[0], "pwd") == 0)
+      whoosh_pwd(line_argv[1]);
 
     if (strcmp(line_argv[0], "exit") == 0)  {
       free(line_argv);
