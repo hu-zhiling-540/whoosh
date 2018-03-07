@@ -6,6 +6,8 @@
 int const MAXARGS = 4;
 int const MAXLINE = 128; // maximum length of a line of input to the shell is 128 bytes
 int const MAXPATH = 100; // random number, can be disscussed later
+char **PATHS;
+int pathsCount = 1;
 
 // by line, I mean each command
 int parseLine(char *cmdline, char **argv) {
@@ -45,10 +47,64 @@ void whoosh_pwd(){
   free(cwd);
 }
 
+void whoosh_setpath(char **argv){
+  if(argv[0] == NULL)
+    return; // does nothing to the current paths
+
+  int count = 0;  // number of valid string in argv
+  while(argv[count] != NULL)
+    count++;
+
+  // printf("%d\n", count + pathsCount);
+  char **paths = malloc(sizeof(char *) * ( count + pathsCount));
+
+  for (int i = 0; i < pathsCount; i++)  {
+    paths[i] = malloc(sizeof(char) * (strlen(PATHS[i]) + 1));
+    strcpy(paths[i], PATHS[i]);
+  }
+  // int repeated = 0;
+  // for(int i = 0; i < count; i++)  {
+  //   for (int j = 0; j < pathsCount; j++){
+  //     if (strcmp(argv[i], PATHS[j]) == 0) {
+  //       j++;  // move on to the next current path
+  //       repeated++;
+  //     }
+  //     else
+  //   }
+  //
+  // }
+  // int j = 0;
+  // while(PATHS[j] != NULL){
+  //   if(strcmp(PATHS[j], ))
+  // }
+
+  int i = pathsCount;
+  // printf("%d\n", i);
+  for (int j = 0; j < count; j++){
+    paths[i] = malloc(sizeof(char) * (strlen(argv[j]) + 1));
+    strcpy(paths[i], argv[j]);
+    i++;
+  }
+  pathsCount = i;
+  // paths[i] = NULL;
+  // free(PATHS);
+  PATHS = paths;
+  free(paths);
+  return;
+
+}
+
+void whoosh_printpath() {
+  for(int i = 0; i < pathsCount; i++)
+    printf("%s\n", PATHS[i]);
+
+}
 // takes nothing, so we can simply call ./woosh
 int main(void){
 
-  // int path;
+  PATHS = malloc(sizeof(char*) * 2); // uncertain about numbers of paths at most
+  PATHS[0] = "/bin";  // default path;
+  PATHS[1] = NULL;
 
   char *buffer = malloc(sizeof(char) * (MAXLINE + 1)); // +1 takes null terminator into account; not sure
 
@@ -85,12 +141,19 @@ int main(void){
     if (strcmp(line_argv[0], "cd") == 0)
       whoosh_cd(line_argv[1]);
 
-    if (strcmp(line_argv[0], "pwd") == 0)
+    else if (strcmp(line_argv[0], "pwd") == 0)
       whoosh_pwd(line_argv[1]);
 
-    if (strcmp(line_argv[0], "exit") == 0)  {
+    else if (strcmp(line_argv[0], "setpath") == 0)
+      whoosh_setpath(&line_argv[1]);
+
+    else if (strcmp(line_argv[0], "printpath") == 0)
+      whoosh_printpath();
+
+    else if (strcmp(line_argv[0], "exit") == 0)  {
       free(line_argv);
       free(buffer);
+      free(PATHS);
       exit(0);
     }
 
