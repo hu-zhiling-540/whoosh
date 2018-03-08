@@ -6,8 +6,8 @@
 int const MAXARGS = 4;
 int const MAXLINE = 128; // maximum length of a line of input to the shell is 128 bytes
 int const MAXPATH = 100; // random number, can be disscussed later
-char **PATHS;
-int pathsCount = 1;
+char **PATHS; // a path variable to remember the path
+int num_of_paths = 1; // default
 
 // by line, I mean each command
 int parseLine(char *cmdline, char **argv) {
@@ -15,12 +15,10 @@ int parseLine(char *cmdline, char **argv) {
   char *separator = " \n\t"; // includes space, Enter, Tab
   argv[count] = strtok(cmdline, separator); // searches for the characters listed in separator
 
-  while ((argv[count] != NULL) && (count+1 < MAXARGS)) {
+  while ((argv[count] != NULL) && (count+1 < MAXARGS))
     argv[++count] = strtok((char *) 0, separator);
-  }
 
   return count; // count of how many arguments in one command line
-
 }
 
 // given method for reporting error
@@ -48,23 +46,24 @@ void whoosh_pwd(){
 }
 
 void whoosh_setpath(char **argv){
-  if(argv[0] == NULL)
-    return; // does nothing to the current paths
+  if(argv[0] == NULL) // if the user sets path to be empty
+    return; // may need change this to a null environment for running the code
 
-  int count = 0;  // number of valid string in argv
+  int count = 0;  // count of paths in user input arguments
   while(argv[count] != NULL)
     count++;
 
-  // printf("%d\n", count + pathsCount);
-  char **paths = malloc(sizeof(char *) * ( count + pathsCount));
+  PATHS = realloc(PATHS, sizeof(char *) * ( count + num_of_paths));
 
-  for (int i = 0; i < pathsCount; i++)  {
-    paths[i] = malloc(sizeof(char) * (strlen(PATHS[i]) + 1));
-    strcpy(paths[i], PATHS[i]);
-  }
+  /** in case repeated directories; will discuss later **/
+  // for (int i = 0; i < num_of_paths; i++)  {
+  //   paths[i] = malloc(sizeof(char) * (strlen(PATHS[i]) + 1));
+  //   strcpy(paths[i], PATHS[i]);
+  // }
+
   // int repeated = 0;
   // for(int i = 0; i < count; i++)  {
-  //   for (int j = 0; j < pathsCount; j++){
+  //   for (int j = 0; j < num_of_paths; j++){
   //     if (strcmp(argv[i], PATHS[j]) == 0) {
   //       j++;  // move on to the next current path
   //       repeated++;
@@ -78,33 +77,27 @@ void whoosh_setpath(char **argv){
   //   if(strcmp(PATHS[j], ))
   // }
 
-  int i = pathsCount;
-  // printf("%d\n", i);
+  int i = num_of_paths;
+  // add new directories to PATHS
   for (int j = 0; j < count; j++){
-    paths[i] = malloc(sizeof(char) * (strlen(argv[j]) + 1));
-    strcpy(paths[i], argv[j]);
+    PATHS[i] = malloc(sizeof(char) * (strlen(argv[j]) + 1));
+    strcpy(PATHS[i], argv[j]);
     i++;
   }
-  pathsCount = i;
-  // paths[i] = NULL;
-  // free(PATHS);
-  PATHS = paths;
-  free(paths);
+  num_of_paths = i;
   return;
-
 }
 
 void whoosh_printpath() {
-  for(int i = 0; i < pathsCount; i++)
+  for(int i = 0; i < num_of_paths; i++)
     printf("%s\n", PATHS[i]);
-
 }
+
 // takes nothing, so we can simply call ./woosh
 int main(void){
 
-  PATHS = malloc(sizeof(char*) * 2); // uncertain about numbers of paths at most
-  PATHS[0] = "/bin";  // default path;
-  PATHS[1] = NULL;
+  PATHS = malloc(sizeof(char*) * 1); // uncertain about numbers of paths at most
+  PATHS[0] = "/bin";  // default path
 
   char *buffer = malloc(sizeof(char) * (MAXLINE + 1)); // +1 takes null terminator into account; not sure
 
@@ -153,6 +146,8 @@ int main(void){
     else if (strcmp(line_argv[0], "exit") == 0)  {
       free(line_argv);
       free(buffer);
+      for(int i = 1; i < num_of_paths; i++)
+        free(PATHS[i]);
       free(PATHS);
       exit(0);
     }
