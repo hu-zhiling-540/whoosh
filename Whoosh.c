@@ -2,6 +2,9 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 
 int const MAXARGS = 4;
 int const MAXLINE = 128; // maximum length of a line of input to the shell is 128 bytes
@@ -93,6 +96,56 @@ void whoosh_printpath() {
     printf("%s\n", PATHS[i]);
 }
 
+char* get_file_path(char* file) {
+  int i = 0;
+  int found = 0;
+  struct stat exists;
+  char* temp = malloc(sizeof(char) * MAXLINE);
+  while ((PATHS[i] != NULL)){
+//    bzero(temp, MAXLINE);
+    strcpy(temp, PATHS[i]);
+    strcat(temp, "/");
+    strcat(temp, file);
+    if (stat(temp, &exists) == 0) {
+      found = 1;
+      break;
+    }
+    i++;
+  }
+
+  if (found != 1)  {
+    free(temp);
+    return NULL;
+  }
+
+  return temp;
+}
+
+int whoosh_external_cmd(char *filepath, char** argv){
+  // char* argv[MAXARGS];
+  pid_t child_pid;
+  int child_status;
+
+  child_pid = fork();
+  if(child_pid == 0) {  // the child process
+    execv(filepath, argv);
+    /* If execv returns, it must have failed. */
+    reportError();
+//    exit(0);
+  }
+  else if(child_pid > 0){ // run by the parent; wait for the child to terminate
+//    do {
+      pid_t tpid = wait(&child_status);
+//      if(tpid != child_pid)
+//        process_terminated(tpid);
+//    } while(tpid != child_pid);
+  }
+  else
+    reportError();
+
+  return child_status;
+}
+
 // takes nothing, so we can simply call ./woosh
 int main(void){
 
@@ -150,6 +203,16 @@ int main(void){
         free(PATHS[i]);
       free(PATHS);
       exit(0);
+    }
+    else{
+      char* file_path = get_file_path(line_argv[0]);
+      if(file_path == NULL){
+        reportError();
+        continue;
+      }
+      else  {
+        whoosh_external_cmd(file_path, line_argv);
+      }
     }
 
     // If user hits enter key without a command
