@@ -1,0 +1,4 @@
+textsort: texttwhoosh.c
+	gcc - -Wall -o textsort textsort.c
+
+all: textsort 
